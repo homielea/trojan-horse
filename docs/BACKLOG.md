@@ -50,6 +50,9 @@
 
 ### T-009 · F8 Conditioning level (`specs/F8-conditioning-level.md`)
 ### T-010 · Backend proxy + F6 AI check-in (`specs/F6-ai-checkin.md`) — needs Supabase + Anthropic key server-side
+- Includes **F6a Future-Self Anchor** (the core check-in mechanic): anchor capture
+  (gated on momentum + good-night heuristic, never onboarding/post-slip), `FutureSelf`
+  storage, anchor-aware prompt behaviour, and a user-editable anchor screen. See spec §F6a.
 ### T-011 · F7 Paywall via RevenueCat (`specs/F7-paywall.md`)
 ### T-012 · Analytics (PostHog) + the success metrics in PRD §6
 
