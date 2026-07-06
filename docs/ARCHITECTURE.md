@@ -17,6 +17,12 @@
 | AI check-in (v1.1) | **Anthropic Claude** via a backend proxy | NEVER ship API keys in the app |
 | Backend (v1.1) | Supabase (auth optional/anonymous, edge functions for AI proxy) | Only when F6/F7 land |
 
+> Installed for the MVP (T-001–T-007): `expo-router`, `zustand`,
+> `@react-native-async-storage/async-storage`, `expo-crypto`, plus the expo-router
+> peers `react-native-safe-area-context` and `react-native-screens`. Entry is now
+> `expo-router/entry` (`package.json` `main`); the old single-file `App.tsx` is
+> replaced by the `app/` route tree.
+
 ## 2. Folder structure (target)
 
 ```
