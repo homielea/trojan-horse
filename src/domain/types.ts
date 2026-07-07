@@ -19,12 +19,49 @@ export interface Settings {
   baselineFrequencyPerWeek?: number; // from onboarding, for "time saved" math later
   onboardedAt?: number;
   crisisDismissedAt?: number;
+  checkinHour?: number; // user-set evening nudge hour (0–23); F6
+}
+
+// --- F6 AI late-night check-in ---
+export type ChatRole = 'user' | 'assistant';
+
+export interface CheckInMessage {
+  role: ChatRole;
+  content: string;
+}
+
+export interface CheckIn {
+  id: string;
+  date: number; // Date.now() at session start
+  transcript: CheckInMessage[];
+  summary?: string; // compact rolling memory, produced server-side
+}
+
+// --- F6a Future-Self Anchor ---
+export interface FutureSelf {
+  capturedAt: number;
+  statements: string[]; // the user's own words, 2–4 short fragments
+  name?: string; // optional: what he calls this version of himself
+  lastReferencedAt?: number;
 }
 
 export interface AppState {
   reps: RepEvent[]; // append-only log; the source of truth
   settings: Settings;
+  checkIns: CheckIn[]; // append-only log of check-in sessions
+  futureSelf?: FutureSelf; // the anchor; absent until captured
   // derived (computed, not stored): selfAwarenessReps, conditioningLevel, dangerMap
+}
+
+// Compact context sent to the check-in proxy (never full history). F6/F6a.
+export interface CheckInContext {
+  vertical: Vertical;
+  selfAwarenessReps: number;
+  recentReps: { type: RepType; createdAt: number; trigger?: string; feeling?: string }[];
+  dangerZones: DangerZone[];
+  anchor?: { statements: string[]; name?: string };
+  priorSummary?: string;
+  lastEventWasSlip: boolean;
 }
 
 // Input accepted when logging a slip via the autopsy flow (F3).

@@ -6,3 +6,4 @@ export { Card } from './Card';
 export { BreathRing } from './BreathRing';
 export { UrgeSession } from './UrgeSession';
 export { ConditioningBadge } from './ConditioningBadge';
+export { CrisisCard } from './CrisisCard';

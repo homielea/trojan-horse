@@ -22,6 +22,12 @@
 > peers `react-native-safe-area-context` and `react-native-screens`. Entry is now
 > `expo-router/entry` (`package.json` `main`); the old single-file `App.tsx` is
 > replaced by the `app/` route tree.
+>
+> F6 AI check-in (T-010): the client talks to a backend proxy at
+> `EXPO_PUBLIC_CHECKIN_PROXY_URL` (a URL, not a secret — unset ⇒ feature hidden).
+> The proxy is a Supabase edge function in `supabase/functions/checkin/` that holds
+> `ANTHROPIC_API_KEY` server-side and calls Claude (`claude-opus-4-8`). No new
+> client dependency; `supabase/` is excluded from the app `tsc` build.
 
 ## 2. Folder structure (target)
 

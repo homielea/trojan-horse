@@ -9,7 +9,14 @@ import {
   selfAwarenessReps,
   triggeredSlipCount,
 } from '../src/domain/reps';
-import { selectReps, useAppStore } from '../src/store/useAppStore';
+import { shouldOfferAnchorCapture } from '../src/domain/checkin';
+import { checkinConfigured } from '../src/lib/checkinClient';
+import {
+  selectFutureSelf,
+  selectIsOnboarded,
+  selectReps,
+  useAppStore,
+} from '../src/store/useAppStore';
 import { color, space, type } from '../src/theme/theme';
 
 const DANGER_MAP_MIN_SLIPS = 3; // F3: surfaces only after ≥3 triggered slips
@@ -17,9 +24,16 @@ const DANGER_MAP_MIN_SLIPS = 3; // F3: surfaces only after ≥3 triggered slips
 export default function Home() {
   const router = useRouter();
   const reps = useAppStore(selectReps);
+  const futureSelf = useAppStore(selectFutureSelf);
+  const onboarded = useAppStore(selectIsOnboarded);
   const count = selfAwarenessReps(reps);
   const conditioning = conditioningLevel(reps, Date.now());
   const showDanger = triggeredSlipCount(reps) >= DANGER_MAP_MIN_SLIPS;
+  // The check-in only shows once the backend is switched on (F6 is v1.1).
+  const checkinAvailable = checkinConfigured();
+  // Offer to capture the anchor only on a good night (F6a gate).
+  const offerAnchor =
+    checkinAvailable && shouldOfferAnchorCapture(reps, futureSelf, onboarded);
   const zones = showDanger ? dangerMap(reps).slice(0, 3) : [];
   const insets = useSafeAreaInsets();
 
@@ -54,6 +68,29 @@ export default function Home() {
         conditioning={conditioning}
         onPress={() => router.push('/insights')}
       />
+
+      {offerAnchor ? (
+        <Card style={styles.nudgeCard}>
+          <Text style={styles.nudgeTitle}>You've got some momentum.</Text>
+          <Text style={styles.nudgeBody}>
+            Good moment to name the man you're becoming — before the next urge, not
+            during one.
+          </Text>
+          <Button
+            label="Name him"
+            variant="affirm"
+            onPress={() => router.push('/checkin?mode=anchor_capture')}
+          />
+        </Card>
+      ) : null}
+
+      {checkinAvailable ? (
+        <Button
+          label={futureSelf ? 'Late-night check-in' : 'Talk it out — check-in'}
+          variant="ghost"
+          onPress={() => router.push('/checkin')}
+        />
+      ) : null}
 
       {showDanger ? (
         <Card style={styles.dangerCard}>
@@ -93,4 +130,7 @@ const styles = StyleSheet.create({
   dangerTrigger: { ...type.body, color: color.textHi },
   dangerCount: { ...type.title, color: color.urge },
   dangerSub: { ...type.caption, color: color.textLow, marginTop: space.xs },
+  nudgeCard: { gap: space.sm },
+  nudgeTitle: { ...type.title, fontSize: 18, color: color.textHi },
+  nudgeBody: { ...type.body, color: color.textMid },
 });

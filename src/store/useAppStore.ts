@@ -10,7 +10,14 @@ import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { addRep } from '../domain/reps';
-import type { AppState, RepEvent, Settings, SlipInput } from '../domain/types';
+import type {
+  AppState,
+  CheckIn,
+  FutureSelf,
+  RepEvent,
+  Settings,
+  SlipInput,
+} from '../domain/types';
 import { storage } from '../lib/storage';
 
 const PERSIST_KEY = 'trojan-horse/v1';
@@ -25,6 +32,10 @@ interface Store extends AppState {
   logSlip: (input: SlipInput) => void;
   setBaseline: (freqPerWeek: number) => void;
   completeOnboarding: () => void;
+  // F6 / F6a
+  addCheckIn: (checkIn: CheckIn) => void;
+  setFutureSelf: (statements: string[], name?: string) => void;
+  markAnchorReferenced: () => void;
 }
 
 function newRep(type: RepEvent['type'], extra: SlipInput = {}): RepEvent {
@@ -41,6 +52,8 @@ export const useAppStore = create<Store>()(
     (set) => ({
       reps: [],
       settings: defaultSettings,
+      checkIns: [],
+      futureSelf: undefined,
 
       addIntervention: () =>
         set((s) => ({ reps: addRep(s.reps, newRep('intervention')) })),
@@ -66,13 +79,41 @@ export const useAppStore = create<Store>()(
         set((s) => ({
           settings: { ...s.settings, onboardedAt: Date.now() },
         })),
+
+      // Append a completed check-in session (append-only, like reps).
+      addCheckIn: (checkIn) =>
+        set((s) => ({ checkIns: [...s.checkIns, checkIn] })),
+
+      // The anchor is user-authored and editable. Overwriting keeps the original
+      // capture time so "the man he's becoming" has a start date; F6a.
+      setFutureSelf: (statements, name) =>
+        set((s) => ({
+          futureSelf: {
+            capturedAt: s.futureSelf?.capturedAt ?? Date.now(),
+            statements,
+            name,
+            lastReferencedAt: s.futureSelf?.lastReferencedAt,
+          },
+        })),
+
+      markAnchorReferenced: () =>
+        set((s) =>
+          s.futureSelf
+            ? { futureSelf: { ...s.futureSelf, lastReferencedAt: Date.now() } }
+            : {},
+        ),
     }),
     {
       name: PERSIST_KEY,
       version: PERSIST_VERSION,
       storage: createJSONStorage(() => storage),
       // Only persist domain data, not the action functions.
-      partialize: (s) => ({ reps: s.reps, settings: s.settings }),
+      partialize: (s) => ({
+        reps: s.reps,
+        settings: s.settings,
+        checkIns: s.checkIns,
+        futureSelf: s.futureSelf,
+      }),
     },
   ),
 );
@@ -102,3 +143,5 @@ export const selectReps = (s: Store) => s.reps;
 export const selectSettings = (s: Store) => s.settings;
 export const selectIsOnboarded = (s: Store) =>
   s.settings.onboardedAt !== undefined;
+export const selectFutureSelf = (s: Store) => s.futureSelf;
+export const selectCheckIns = (s: Store) => s.checkIns;
