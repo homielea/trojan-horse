@@ -2,11 +2,13 @@
 // Shown only from an upsell tap after first value — never on launch, never over
 // the urge loop.
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card } from '../src/components';
 import { PRICING, useEntitlement, type Plan } from '../src/lib/purchases';
+import { analytics } from '../src/lib/analytics';
+import { AnalyticsEvent } from '../src/domain/analyticsEvents';
 import { color, radius, space, type } from '../src/theme/theme';
 
 const UNLOCKS = [
@@ -22,6 +24,10 @@ export default function Paywall() {
   const [plan, setPlan] = useState<Plan>('annual');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    analytics.capture(AnalyticsEvent.PAYWALL_VIEWED);
+  }, []);
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -83,7 +89,12 @@ export default function Paywall() {
         label={busy ? 'One sec…' : `Start ${PRICING[plan].label.toLowerCase()}`}
         variant="urge"
         disabled={busy}
-        onPress={() => run(() => purchase(plan))}
+        onPress={() =>
+          run(async () => {
+            await purchase(plan);
+            analytics.capture(AnalyticsEvent.SUBSCRIPTION_STARTED, { plan });
+          })
+        }
       />
       <Button label="Restore purchases" variant="ghost" onPress={() => run(restore)} />
       <Button label="Not now" variant="ghost" onPress={() => router.back()} />

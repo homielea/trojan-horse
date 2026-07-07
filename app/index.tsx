@@ -129,6 +129,12 @@ export default function Home() {
           )}
         </Card>
       ) : null}
+
+      <Button
+        label="Settings"
+        variant="ghost"
+        onPress={() => router.push('/settings')}
+      />
     </ScrollView>
   );
 }

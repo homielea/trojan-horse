@@ -23,6 +23,8 @@ import {
   checkinConfigured,
   sendCheckinTurn,
 } from '../src/lib/checkinClient';
+import { analytics } from '../src/lib/analytics';
+import { AnalyticsEvent } from '../src/domain/analyticsEvents';
 import {
   selectCheckIns,
   selectFutureSelf,
@@ -111,6 +113,7 @@ export default function CheckIn() {
         summary,
       };
       addCheckIn(checkIn);
+      analytics.capture(AnalyticsEvent.CHECKIN_COMPLETED, { mode });
     }
     router.back();
   };

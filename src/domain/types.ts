@@ -20,6 +20,7 @@ export interface Settings {
   onboardedAt?: number;
   crisisDismissedAt?: number;
   checkinHour?: number; // user-set evening nudge hour (0–23); F6
+  analyticsOptOut?: boolean; // privacy is a feature (PRD §4); T-012
 }
 
 // --- F6 AI late-night check-in ---

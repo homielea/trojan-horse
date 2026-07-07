@@ -5,6 +5,8 @@ import { useRouter } from 'expo-router';
 import { UrgeSession } from '../src/components';
 import { reframeFor } from '../src/domain/reframes';
 import { selectReps, useAppStore } from '../src/store/useAppStore';
+import { analytics } from '../src/lib/analytics';
+import { AnalyticsEvent } from '../src/domain/analyticsEvents';
 
 const INTERVENTION_SECONDS = 60;
 
@@ -17,6 +19,7 @@ export default function InterventionScreen() {
 
   const complete = () => {
     addIntervention();
+    analytics.capture(AnalyticsEvent.REP_LOGGED, { type: 'intervention' });
     router.back();
   };
 

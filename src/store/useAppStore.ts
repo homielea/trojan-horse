@@ -36,6 +36,7 @@ interface Store extends AppState {
   addCheckIn: (checkIn: CheckIn) => void;
   setFutureSelf: (statements: string[], name?: string) => void;
   markAnchorReferenced: () => void;
+  setAnalyticsOptOut: (optOut: boolean) => void;
 }
 
 function newRep(type: RepEvent['type'], extra: SlipInput = {}): RepEvent {
@@ -102,6 +103,9 @@ export const useAppStore = create<Store>()(
             ? { futureSelf: { ...s.futureSelf, lastReferencedAt: Date.now() } }
             : {},
         ),
+
+      setAnalyticsOptOut: (optOut) =>
+        set((s) => ({ settings: { ...s.settings, analyticsOptOut: optOut } })),
     }),
     {
       name: PERSIST_KEY,

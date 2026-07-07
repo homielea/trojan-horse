@@ -23,6 +23,12 @@
 > `expo-router/entry` (`package.json` `main`); the old single-file `App.tsx` is
 > replaced by the `app/` route tree.
 >
+> Analytics (T-012): event taxonomy in `src/domain/analyticsEvents.ts` (the PRD §6
+> metrics are derived from these in PostHog, not on-device); `src/lib/analytics.ts`
+> is the single PostHog boundary — no-op until `EXPO_PUBLIC_POSTHOG_KEY` is set and
+> whenever the user opts out (`settings.analyticsOptOut`, toggled in `app/settings`).
+> No PII is ever sent — only coarse types/flags.
+>
 > F7 paywall (T-011): gating rules are pure in `src/domain/entitlements.ts`; the
 > entitlement state comes from `useEntitlement()` in `src/lib/purchases.ts`, which
 > is the single RevenueCat integration boundary (public SDK key via

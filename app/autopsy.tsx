@@ -14,6 +14,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Chip } from '../src/components';
 import { useAppStore } from '../src/store/useAppStore';
+import { analytics } from '../src/lib/analytics';
+import { AnalyticsEvent } from '../src/domain/analyticsEvents';
 import { color, radius, space, type } from '../src/theme/theme';
 
 const TRIGGERS = [
@@ -56,6 +58,11 @@ export default function AutopsyScreen() {
       trigger: resolvedTrigger,
       feeling,
       note: note.trim() || undefined,
+    });
+    // No trigger/feeling text leaves the device — only coarse, non-PII flags.
+    analytics.capture(AnalyticsEvent.REP_LOGGED, { type: 'slip' });
+    analytics.capture(AnalyticsEvent.SLIP_LOGGED, {
+      has_trigger: resolvedTrigger !== undefined,
     });
     router.back();
   };

@@ -4,6 +4,8 @@
 // gate then routes to Home.
 import { UrgeSession } from '../../src/components';
 import { useAppStore } from '../../src/store/useAppStore';
+import { analytics } from '../../src/lib/analytics';
+import { AnalyticsEvent } from '../../src/domain/analyticsEvents';
 
 const FIRST_REP_SECONDS = 15; // shorter than the full 60s loop — a fast first win
 
@@ -17,6 +19,8 @@ export default function FirstRep() {
   const finish = () => {
     addIntervention();
     completeOnboarding(); // flips the gate in app/_layout → routes to Home
+    analytics.capture(AnalyticsEvent.REP_LOGGED, { type: 'intervention' });
+    analytics.capture(AnalyticsEvent.ONBOARDING_COMPLETED);
   };
 
   return (
