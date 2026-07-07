@@ -45,6 +45,44 @@ export function dangerMap(reps: readonly RepEvent[]): DangerZone[] {
     .sort((a, b) => b.count - a.count);
 }
 
+/** Counts of interventions vs slips — for the insights breakdown (F8). */
+export function repBreakdown(reps: readonly RepEvent[]): {
+  interventions: number;
+  slips: number;
+} {
+  let interventions = 0;
+  let slips = 0;
+  for (const r of reps) {
+    if (r.type === 'intervention') interventions++;
+    else slips++;
+  }
+  return { interventions, slips };
+}
+
+/**
+ * Total reps per day for the last `days` days, oldest-first (F8 insights).
+ * Index 0 is `days-1` days ago; the last index is today (local-day buckets).
+ */
+export function repsPerDay(
+  reps: readonly RepEvent[],
+  now: number,
+  days: number,
+): number[] {
+  const buckets = new Array<number>(days).fill(0);
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const todayStart = startOfToday.getTime();
+  const dayMs = 24 * 60 * 60 * 1000;
+  for (const r of reps) {
+    const repDay = new Date(r.createdAt);
+    repDay.setHours(0, 0, 0, 0);
+    const daysAgo = Math.round((todayStart - repDay.getTime()) / dayMs);
+    const idx = days - 1 - daysAgo; // today → last bucket
+    if (idx >= 0 && idx < days) buckets[idx]++;
+  }
+  return buckets;
+}
+
 /** Count of slips that carry a trigger — gates when the Danger Map appears (F3: ≥3). */
 export function triggeredSlipCount(reps: readonly RepEvent[]): number {
   return reps.reduce(

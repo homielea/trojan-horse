@@ -2,8 +2,13 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, MetricBlock } from '../src/components';
-import { dangerMap, selfAwarenessReps, triggeredSlipCount } from '../src/domain/reps';
+import { Button, Card, ConditioningBadge, MetricBlock } from '../src/components';
+import {
+  conditioningLevel,
+  dangerMap,
+  selfAwarenessReps,
+  triggeredSlipCount,
+} from '../src/domain/reps';
 import { selectReps, useAppStore } from '../src/store/useAppStore';
 import { color, space, type } from '../src/theme/theme';
 
@@ -13,6 +18,7 @@ export default function Home() {
   const router = useRouter();
   const reps = useAppStore(selectReps);
   const count = selfAwarenessReps(reps);
+  const conditioning = conditioningLevel(reps, Date.now());
   const showDanger = triggeredSlipCount(reps) >= DANGER_MAP_MIN_SLIPS;
   const zones = showDanger ? dangerMap(reps).slice(0, 3) : [];
   const insets = useSafeAreaInsets();
@@ -43,6 +49,11 @@ export default function Home() {
           onPress={() => router.push('/autopsy')}
         />
       </View>
+
+      <ConditioningBadge
+        conditioning={conditioning}
+        onPress={() => router.push('/insights')}
+      />
 
       {showDanger ? (
         <Card style={styles.dangerCard}>

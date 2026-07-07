@@ -42,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="intervention" options={{ presentation: 'modal' }} />
         <Stack.Screen name="autopsy" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="insights" options={{ presentation: 'modal' }} />
         <Stack.Screen name="onboarding" />
       </Stack>
     </SafeAreaProvider>
