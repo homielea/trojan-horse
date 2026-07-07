@@ -10,8 +10,11 @@ import {
   triggeredSlipCount,
 } from '../src/domain/reps';
 import { shouldOfferAnchorCapture } from '../src/domain/checkin';
+import { canStartCheckin, dangerZoneLimit } from '../src/domain/entitlements';
 import { checkinConfigured } from '../src/lib/checkinClient';
+import { useEntitlement } from '../src/lib/purchases';
 import {
+  selectCheckIns,
   selectFutureSelf,
   selectIsOnboarded,
   selectReps,
@@ -26,15 +29,26 @@ export default function Home() {
   const reps = useAppStore(selectReps);
   const futureSelf = useAppStore(selectFutureSelf);
   const onboarded = useAppStore(selectIsOnboarded);
+  const checkIns = useAppStore(selectCheckIns);
+  const { isPro } = useEntitlement();
   const count = selfAwarenessReps(reps);
   const conditioning = conditioningLevel(reps, Date.now());
   const showDanger = triggeredSlipCount(reps) >= DANGER_MAP_MIN_SLIPS;
+  // F7: free previews the top trigger; paid sees the full map.
+  const allZones = showDanger ? dangerMap(reps) : [];
+  const zones = allZones.slice(0, dangerZoneLimit(isPro));
+  const lockedZones = allZones.length - zones.length;
   // The check-in only shows once the backend is switched on (F6 is v1.1).
   const checkinAvailable = checkinConfigured();
   // Offer to capture the anchor only on a good night (F6a gate).
   const offerAnchor =
     checkinAvailable && shouldOfferAnchorCapture(reps, futureSelf, onboarded);
-  const zones = showDanger ? dangerMap(reps).slice(0, 3) : [];
+
+  // F7: urge loop is NEVER gated. The check-in is: free gets a lifetime cap.
+  const startCheckin = () => {
+    if (canStartCheckin(isPro, checkIns.length)) router.push('/checkin');
+    else router.push('/paywall');
+  };
   const insets = useSafeAreaInsets();
 
   return (
@@ -88,7 +102,7 @@ export default function Home() {
         <Button
           label={futureSelf ? 'Late-night check-in' : 'Talk it out — check-in'}
           variant="ghost"
-          onPress={() => router.push('/checkin')}
+          onPress={startCheckin}
         />
       ) : null}
 
@@ -101,9 +115,18 @@ export default function Home() {
               <Text style={styles.dangerCount}>{z.count}</Text>
             </View>
           ))}
-          <Text style={styles.dangerSub}>
-            Where the urge tends to catch you. Naming it is half the work.
-          </Text>
+          {lockedZones > 0 ? (
+            <Button
+              label={`See all ${allZones.length} danger zones`}
+              variant="ghost"
+              onPress={() => router.push('/paywall')}
+              style={styles.dangerUpsell}
+            />
+          ) : (
+            <Text style={styles.dangerSub}>
+              Where the urge tends to catch you. Naming it is half the work.
+            </Text>
+          )}
         </Card>
       ) : null}
     </ScrollView>
@@ -130,6 +153,7 @@ const styles = StyleSheet.create({
   dangerTrigger: { ...type.body, color: color.textHi },
   dangerCount: { ...type.title, color: color.urge },
   dangerSub: { ...type.caption, color: color.textLow, marginTop: space.xs },
+  dangerUpsell: { marginTop: space.xs },
   nudgeCard: { gap: space.sm },
   nudgeTitle: { ...type.title, fontSize: 18, color: color.textHi },
   nudgeBody: { ...type.body, color: color.textMid },

@@ -10,6 +10,8 @@ import {
   repsPerDay,
   selfAwarenessReps,
 } from '../src/domain/reps';
+import { canSeeFullInsights } from '../src/domain/entitlements';
+import { useEntitlement } from '../src/lib/purchases';
 import { selectReps, useAppStore } from '../src/store/useAppStore';
 import { color, radius, space, type } from '../src/theme/theme';
 
@@ -18,6 +20,8 @@ const DAYS = 14;
 export default function Insights() {
   const router = useRouter();
   const reps = useAppStore(selectReps);
+  const { isPro } = useEntitlement();
+  const full = canSeeFullInsights(isPro);
   const insets = useSafeAreaInsets();
   const now = Date.now();
 
@@ -48,6 +52,8 @@ export default function Insights() {
         </Text>
       </Card>
 
+      {full ? (
+      <>
       <Card style={styles.card}>
         <Text style={styles.cardLabel}>LAST {DAYS} DAYS</Text>
         <View style={styles.chart}>
@@ -82,6 +88,21 @@ export default function Insights() {
           <Text style={styles.rowValue}>{slips}</Text>
         </View>
       </Card>
+      </>
+      ) : (
+        <Card style={styles.card}>
+          <Text style={styles.cardLabel}>FULL INSIGHTS</Text>
+          <Text style={styles.sub}>
+            Your reps over time, trend, and breakdown — the whole picture of how
+            you're training. Part of the upgrade.
+          </Text>
+          <Button
+            label="Unlock insights"
+            variant="affirm"
+            onPress={() => router.push('/paywall')}
+          />
+        </Card>
+      )}
 
       <Button label="Done" variant="affirm" onPress={() => router.back()} />
     </ScrollView>

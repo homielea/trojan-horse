@@ -23,6 +23,14 @@
 > `expo-router/entry` (`package.json` `main`); the old single-file `App.tsx` is
 > replaced by the `app/` route tree.
 >
+> F7 paywall (T-011): gating rules are pure in `src/domain/entitlements.ts`; the
+> entitlement state comes from `useEntitlement()` in `src/lib/purchases.ts`, which
+> is the single RevenueCat integration boundary (public SDK key via
+> `EXPO_PUBLIC_RC_IOS_KEY` / `_ANDROID_KEY` — safe in-client). Add
+> `react-native-purchases` in a dev build and fill the four marked functions.
+> Until then it resolves to the free tier (or `EXPO_PUBLIC_FORCE_PRO=1` to exercise
+> paid gates). The urge loop is never gated.
+>
 > F6 AI check-in (T-010): the client talks to a backend proxy at
 > `EXPO_PUBLIC_CHECKIN_PROXY_URL` (a URL, not a secret — unset ⇒ feature hidden).
 > The proxy is a Supabase edge function in `supabase/functions/checkin/` that holds
