@@ -1,0 +1,1 @@
+The progress metric is append-only and only goes up (slips count as data). No reset/streak-zero anywhere. Danger map must drive prevention.

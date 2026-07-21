@@ -17,6 +17,32 @@
 | AI check-in (v1.1) | **Anthropic Claude** via a backend proxy | NEVER ship API keys in the app |
 | Backend (v1.1) | Supabase (auth optional/anonymous, edge functions for AI proxy) | Only when F6/F7 land |
 
+> Installed for the MVP (T-001–T-007): `expo-router`, `zustand`,
+> `@react-native-async-storage/async-storage`, `expo-crypto`, plus the expo-router
+> peers `react-native-safe-area-context` and `react-native-screens`. Entry is now
+> `expo-router/entry` (`package.json` `main`); the old single-file `App.tsx` is
+> replaced by the `app/` route tree.
+>
+> Analytics (T-012): event taxonomy in `src/domain/analyticsEvents.ts` (the PRD §6
+> metrics are derived from these in PostHog, not on-device); `src/lib/analytics.ts`
+> is the single PostHog boundary — no-op until `EXPO_PUBLIC_POSTHOG_KEY` is set and
+> whenever the user opts out (`settings.analyticsOptOut`, toggled in `app/settings`).
+> No PII is ever sent — only coarse types/flags.
+>
+> F7 paywall (T-011): gating rules are pure in `src/domain/entitlements.ts`; the
+> entitlement state comes from `useEntitlement()` in `src/lib/purchases.ts`, which
+> is the single RevenueCat integration boundary (public SDK key via
+> `EXPO_PUBLIC_RC_IOS_KEY` / `_ANDROID_KEY` — safe in-client). Add
+> `react-native-purchases` in a dev build and fill the four marked functions.
+> Until then it resolves to the free tier (or `EXPO_PUBLIC_FORCE_PRO=1` to exercise
+> paid gates). The urge loop is never gated.
+>
+> F6 AI check-in (T-010): the client talks to a backend proxy at
+> `EXPO_PUBLIC_CHECKIN_PROXY_URL` (a URL, not a secret — unset ⇒ feature hidden).
+> The proxy is a Supabase edge function in `supabase/functions/checkin/` that holds
+> `ANTHROPIC_API_KEY` server-side and calls Claude (`claude-opus-4-8`). No new
+> client dependency; `supabase/` is excluded from the app `tsc` build.
+
 ## 2. Folder structure (target)
 
 ```

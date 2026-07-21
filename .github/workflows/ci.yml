@@ -1,0 +1,47 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect app
+        id: detect
+        run: |
+          if [ -f package.json ]; then echo "app=true" >> "$GITHUB_OUTPUT"; else echo "app=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Setup Node
+        if: steps.detect.outputs.app == 'true'
+        uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - name: Install
+        if: steps.detect.outputs.app == 'true'
+        run: npm ci || npm install
+      - name: Typecheck (strict)
+        if: steps.detect.outputs.app == 'true'
+        run: npx tsc --noEmit
+      - name: Lint (if configured)
+        if: steps.detect.outputs.app == 'true'
+        run: npm run lint --if-present
+      - name: Test (if configured)
+        if: steps.detect.outputs.app == 'true'
+        run: npm test --if-present
+      - name: Invariant reminder
+        run: |
+          echo "== Protected invariant (reviewers, enforce this) =="
+          cat .pipeline/INVARIANT.txt 2>/dev/null || true
+      - name: Invariant guards (data-driven)
+        run: |
+          patt=".pipeline/banned-patterns.txt"
+          [ -f "$patt" ] || { echo "no banned-patterns file; skipping"; exit 0; }
+          fail=0
+          while IFS= read -r rx; do
+            case "$rx" in ''|\#*) continue;; esac
+            if grep -rniE "$rx" --include="*.ts" --include="*.tsx" src app 2>/dev/null; then
+              echo "::error::Banned pattern matched: /$rx/  (violates the protected invariant — see .pipeline/INVARIANT.txt)"; fail=1
+            fi
+          done < "$patt"
+          [ "$fail" = 0 ] && echo "OK: no banned patterns found."
+          exit $fail
