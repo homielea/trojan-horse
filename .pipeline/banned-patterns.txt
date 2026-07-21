@@ -1,0 +1,11 @@
+# CI greps these (case-insensitive) over src/ and app/ *.ts/*.tsx; any match fails the build.
+# Each line is one ERE. Blank lines and #-comments are ignored.
+
+# no secrets in client
+ANTHROPIC_API_KEY|OPENAI_API_KEY|SUPABASE_SERVICE_ROLE|sk-ant-
+
+# only-up metric: ban RESET/ZERO paths and NoFap-style streak COUNTERS.
+# NOTE: "anti-streak" is this app's own term for the differentiator (PRD/DESIGN/README),
+# so the bare word "streak" is intentionally NOT banned — only reset/zeroing and a
+# forward streak-counter are. This targets the actual invariant violation, not the vocab.
+reset(Streak|Progress|Reps|Metric)|back to zero|days ?clean|\b(day|current)[ -]?streak\b|\bstreak[ -]?count(er)?\b|streak\s*(=|:)\s*0|zero(ing|ed)?\s+(the\s+)?streak
